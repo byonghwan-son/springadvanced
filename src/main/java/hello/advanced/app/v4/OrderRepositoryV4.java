@@ -1,29 +1,29 @@
-package hello.advanced.app.v3;
+package hello.advanced.app.v4;
 
 import hello.advanced.trace.TraceStatus;
 import hello.advanced.trace.logtrace.LogTrace;
+import hello.advanced.trace.template.AbstractTemplate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class OrderRepositoryV3 {
+public class OrderRepositoryV4 {
 
   private final LogTrace trace;
 
   public void save(String itemId) {
-    TraceStatus status = null;
-    try {
-      status = trace.begin("OrderRepositoryV3.save()");
-      if(itemId.contains("ex")) {
-        throw new IllegalStateException("예외 발생!");
+    AbstractTemplate<Void> template = new AbstractTemplate<>(trace) {
+      @Override
+      protected Void call() {
+        if(itemId.contains("ex")) {
+          throw new IllegalStateException("예외 발생!");
+        }
+        sleep(1000);
+        return null;
       }
-      sleep(1000);
-      trace.end(status);
-    } catch (Exception e) {
-      trace.exception(status, e);
-      throw e; //예외를 꼭 다시 던져주어야 한다.
-    }
+    };
+    template.execute("OrderRepositoryV4.save()");
   }
 
   private void sleep(int millis) {
